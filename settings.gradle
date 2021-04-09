@@ -1,0 +1,3 @@
+include ':work'
+include ':app'
+rootProject.name = "WorkKTX"
