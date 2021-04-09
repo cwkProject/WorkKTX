@@ -103,7 +103,7 @@ abstract class Work<D, T : WorkData<D>, H> : WorkCore<D, T, H>() {
     /**
      * 此处为真正启动http请求的方法
      */
-    private suspend fun onDoWork(data: T) = withContext(Dispatchers.IO + CoroutineName(_tag)) {
+    private suspend fun onDoWork(data: T) {
         onWillRequest(data)
 
         try {
@@ -117,8 +117,11 @@ abstract class Work<D, T : WorkData<D>, H> : WorkCore<D, T, H>() {
             throw e
         }.let { call ->
             logI(_tag, "real url", call.request().url)
-            onCall(data, call).use {
-                onHandleResponse(data, it)
+
+            withContext(Dispatchers.IO + CoroutineName(_tag)) {
+                onCall(data, call).use {
+                    onHandleResponse(data, it)
+                }
             }
         }
     }
@@ -154,33 +157,28 @@ abstract class Work<D, T : WorkData<D>, H> : WorkCore<D, T, H>() {
     /**
      * 处理响应结果
      */
-    private suspend fun onHandleResponse(data: T, response: Response) {
-        data.response = HttpResponse(
-            success = response.isSuccessful,
-            statusCode = response.code,
-            headers = response.headers,
-        )
-
-        logI(_tag, "response", data.response)
+    private suspend fun onHandleResponse(data: T, response: Response) = data.apply {
+        this.response = HttpResponse(response.isSuccessful, response.code, response.headers)
+        logI(_tag, "response", this.response)
 
         if (response.isSuccessful) {
             try {
                 logV(_tag, "onResponseConvert")
-                onParse(data, onResponseConvert(data, response.body!!))
+                onParse(this, onResponseConvert(this, response.body!!))
             } catch (e: Exception) {
                 if (e !is CancellationException) {
-                    data.success = false
-                    data.errorType = WorkErrorType.PARSE
+                    success = false
+                    errorType = WorkErrorType.PARSE
                     logD(_tag, "onParseFailed")
-                    data.message = onParseFailed(data)
+                    message = onParseFailed(this)
                 }
                 throw e
             }
         } else {
-            data.success = false
-            data.errorType = WorkErrorType.RESPONSE
+            success = false
+            errorType = WorkErrorType.RESPONSE
             logD(_tag, "onNetworkRequestFailed")
-            data.message = onNetworkRequestFailed(data)
+            message = onNetworkRequestFailed(this)
 
             throw IOException("http unexpected code ${response.code}")
         }

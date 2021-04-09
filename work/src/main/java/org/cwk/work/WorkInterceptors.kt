@@ -47,16 +47,12 @@ class WorkRetryInterceptor(private val tag: String, private val retry: Int) : In
  * @property onProgress 发送/上传进度回调
  */
 class SendProgressInterceptor(private val onProgress: OnProgress) : Interceptor {
-    override fun intercept(chain: Interceptor.Chain): Response {
-        val request = chain.request()
-
-        if (request.body == null) {
-            return chain.proceed(request)
+    override fun intercept(chain: Interceptor.Chain) = chain.request().let {
+        if (it.body == null) {
+            chain.proceed(it)
+        } else {
+            chain.proceed(it.newBuilder().method(it.method, sendProgress(it.body!!)).build())
         }
-
-        return chain.proceed(
-            request.newBuilder().method(request.method, sendProgress(request.body!!)).build()
-        )
     }
 
     /**
@@ -94,10 +90,8 @@ class SendProgressInterceptor(private val onProgress: OnProgress) : Interceptor 
  * @property onProgress 接收/下载进度回调
  */
 class ReceiveProgressInterceptor(private val onProgress: OnProgress) : Interceptor {
-    override fun intercept(chain: Interceptor.Chain): Response {
-        val response = chain.proceed(chain.request())
-
-        return response.newBuilder().body(receiveProgress(response.body!!)).build()
+    override fun intercept(chain: Interceptor.Chain) = chain.proceed(chain.request()).let {
+        it.newBuilder().body(receiveProgress(it.body!!)).build()
     }
 
     /**
@@ -120,11 +114,9 @@ class ReceiveProgressInterceptor(private val onProgress: OnProgress) : Intercept
         private fun source(source: Source) = object : ForwardingSource(source) {
             var totalBytesRead = 0L
 
-            override fun read(sink: Buffer, byteCount: Long): Long {
-                val bytesRead = super.read(sink, byteCount)
-                totalBytesRead += if (bytesRead != -1L) bytesRead else 0
-                onProgress(totalBytesRead, contentLength(), bytesRead == -1L)
-                return bytesRead
+            override fun read(sink: Buffer, byteCount: Long) = super.read(sink, byteCount).apply {
+                totalBytesRead += if (this != -1L) this else 0
+                onProgress(totalBytesRead, contentLength(), this == -1L)
             }
         }
     }

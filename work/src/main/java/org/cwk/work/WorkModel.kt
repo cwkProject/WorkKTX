@@ -14,6 +14,8 @@ import java.io.File
  * 可用于监听上传或下载进度
  * 默认回调执行在[kotlinx.coroutines.Dispatchers.IO]
  *
+ * @suppress 本回调禁止抛出异常，否则会中断网络请求，如有危险操作请自行捕获异常
+ *
  * @param current 当前上传/下载字节数
  * @param total 总字节数
  * @param done 是否完成
@@ -110,7 +112,7 @@ enum class ListFormat {
  * @property readTimeout 读取超时，单位毫秒，默认null表示使用全局配置，0表示不会超时
  * @property writeTimeout 写入超时，单位毫秒，默认null表示使用全局配置，0表示不会超时
  * @property headers 自定义/追加的Http请求头，如果不为null则会覆盖默认的OkHttp框架设置的header
- * @property contentType 请求的Content-Type，为null使用默认值[WorkConfig.defaultPostContentType]，如果要上传文件请将此类型设为"multipart/form-data"
+ * @property contentType 请求的Content-Type，为null使用默认值[WorkConfig.defaultContentType]，如果要上传文件请将此类型设为"multipart/form-data"
  * @property onSendProgress 发送/上传进度监听器，在[method]为[HttpMethod.GET]和[HttpMethod.HEAD]时无效
  * @property onReceiveProgress 接收/下载进度监听器
  * @property listFormat 自动序列化时的数组装配格式，默认使用[WorkConfig.listFormat]

@@ -3,8 +3,9 @@
 package org.cwk.work
 
 import kotlinx.coroutines.Dispatchers
-import okhttp3.MediaType
-import okhttp3.ResponseBody
+import okhttp3.*
+import okio.ByteString
+import java.io.File
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -78,12 +79,100 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
     /**
      * 填充请求所需的参数
      *
+     * 支持多种类型的参数装配，
+     *
+     * 当[httpMethod]指定的请求方法不支持请求体时（即[HttpMethod.GET]或[HttpMethod.HEAD]），此处仅支持[String]或[Map]类型，
+     * 如果是[String]类型，则应当是已经使用'&'连字符拼接好的未使用"urlencoded"编码的字符串，
+     * 如果需要传递已经使用"urlencoded"编码的参数串，请在[Options.url]中自行拼接，
+     * 同时请把[Options.params]留空，否则[Options.url]中的参数可能会被覆盖。
+     * 如果是[Map]类型，则框架会自动拼接，[Map]的`key`和`value`均支持任意类型，
+     * 最终`key`会使用`"$key"`转换，`value`使用`value?.toString()`转换，请确保值是String类型或[toString]方法有意义。
+     * 具体拼接方法请查看[workHttpUrlBuilder]
+     *
+     * 当[httpMethod]指定的请求方法支持请求体时（如[HttpMethod.POST]），此处支持[String]、[ByteString]、[ByteArray]、[File]、[RequestBody]、[Map]。
+     * 其中[RequestBody]是用户自定义的OKHttp原始数据体，通常使用[FormBody]、[MultipartBody]构建，也可以自定义，此时[contentType]可忽略。
+     * 如果是[String]、[ByteString]、[ByteArray]、[File]等类型，则[contentType]或[WorkConfig.defaultContentType]必须与返回的数据内容格式一致，
+     * 例如：
+     *
+     * ```
+     *
+     * // 假设全局默认配置被设置为
+     * WorkConfig.defaultConfig = WorkConfig(defaultContentType = "application/json".toMediaType())
+     *
+     * ...
+     *
+     * override suspend fun fillParams() = """{
+     *  "key1": params1,
+     *  "key2": params2
+     * }"""
+     *
+     * ```
+     *
+     * 或者配合json序列化库：
+     *
+     * ```
+     *
+     * // by kotlinx.serialization
+     * @Serializable
+     * data class Params(val a:String,val b:String)
+     *
+     * class SampleWork(val params:Params) : BaseWork<Unit>(){
+     *
+     *      override suspend fun fillParams() = Json.encodeToString(params)
+     *
+     *      override fun contentType() = "application/json".toMediaType()
+     *
+     *      ...
+     * }
+     *
+     * ```
+     *
+     * 如果是[ByteArray]或[File]等二进制内容：
+     *
+     *
+     * ```
+     *
+     * override suspend fun fillParams() = File("README.md")
+     *
+     * override fun contentType() = "text/x-markdown; charset=utf-8".toMediaType()
+     *
+     * ```
+     *
+     * 如果是[Map]类型，则数据体会由框架负责装配，此时[contentType]仅支持"application/json"，"application/x-www-form-urlencoded"，"multipart/form-data"三种。
+     * [Map]的泛型不受限，其非常类似[workHttpUrlBuilder]的模式。
+     * 其中"multipart/form-data"比较特殊，此格式是支持通用文件上传的格式，通常我们使用http上传文件都会构建此种格式的数据。
+     * 此时[Map]中如果要包含文件数据，可以设置value为[File]、[FileWithMimeType]或[ByteArrayWithMimeType]，框架会负责转换。
+     *
+     * 例如：
+     *
+     * ```
+     *
+     * override suspend fun fillParams() = mapOf(
+     *      "title" : "蓝瘦香菇",
+     *      "image1" : File("LanShou.jpg"),
+     *      "image2" : FileWithMimeType(File("XiangGu.tmp"),"image/png","XiangGu.png"),
+     *      "image3" : ByteArrayWithMimeType(cacheBuffer,"image/gif","Animation.gif"),
+     * )
+     *
+     * override fun contentType() = "multipart/form-data".toMediaType()
+     *
+     * ```
+     *
+     * 具体拼装实现请查看[workRequestBodyBuilder]
+     *
      * @return 填充的参数，没有返回null或空对象
      */
     protected abstract suspend fun fillParams(): Any?
 
     /**
      * 请求的Content-Type
+     *
+     * 如果请求[httpMethod]为支持请求体的类型，则此处可以指定本次请求体的Content-Type。
+     * 默认使用[WorkConfig.defaultContentType]。
+     *
+     * 此处的返回值必须与[fillParams]中填充的参数格式对应，否则可能出错。
+     *
+     * @return 请求体的Content-Type标识，返回null表示使用[WorkConfig.defaultContentType]
      */
     protected open fun contentType(): MediaType? = null
 
@@ -110,8 +199,8 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
 
     /**
      * 即将执行网络请求前的回调
+     *
      * 此处可以用于做数据统计，特殊变量[WorkData.extra]创建等
-     * 总是在[Dispatchers.IO]中执行
      *
      * @param data 本次请求中流转的数据
      */
@@ -132,6 +221,8 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
     /**
      * 转换OkHttp请求结果数据[ResponseBody]到用户定义的[H]类型数据
      *
+     * @suppress 此生命周期总是在[Dispatchers.IO]中执行，即不受[execute]的[CoroutineContext]参数影响
+     *
      * @param data 本次请求中流转的数据
      * @param body 请求成功响应的数据体，无需执行[ResponseBody.close]，框架会负责关闭
      *
@@ -143,27 +234,38 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
 
     /**
      * 提取服务执行结果
+     *
      * http响应成功时判断本次业务请求真正的成功或失败结果
+     *
+     * @suppress 此生命周期总是在[Dispatchers.IO]中执行，即不受[execute]的[CoroutineContext]参数影响
      *
      * @param data 本次请求中流转的数据
      * @param response 经由[onResponseConvert]转换后的数据结果
+     *
      * @return 本次业务请求真正的成功或失败结果。
      */
     protected abstract suspend fun onRequestResult(data: T, response: H): Boolean
 
     /**
      * 提取服务执行成功时返回的真正有用结果数据
+     *
      * 在服务请求成功后调用，即[onRequestResult]返回值为true时被调用
+     *
+     * @suppress 此生命周期总是在[Dispatchers.IO]中执行，即不受[execute]的[CoroutineContext]参数影响
      *
      * @param data 本次请求中流转的数据
      * @param response 经由[onResponseConvert]转换后的数据结果
+     *
      * @return 请求成功后的任务返回真正结果数据对象[D]，将会设置给[WorkData.result]
      */
     protected abstract suspend fun onRequestSuccess(data: T, response: H): D?
 
     /**
      * 提取或设置服务返回的成功结果消息
+     *
      * 在服务请求成功后调用，即[onRequestResult]返回值为true时被调用
+     *
+     * @suppress 此生命周期总是在[Dispatchers.IO]中执行，即不受[execute]的[CoroutineContext]参数影响
      *
      * @param data 本次请求中流转的数据
      * @param response 经由[onResponseConvert]转换后的数据结果
@@ -174,7 +276,10 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
 
     /**
      * 提取或设置服务执行失败时的返回结果数据
+     *
      * 在服务请求失败后调用，即[onRequestResult]返回值为false时被调用
+     *
+     * @suppress 此生命周期总是在[Dispatchers.IO]中执行，即不受[execute]的[CoroutineContext]参数影响
      *
      * @param data 本次请求中流转的数据
      * @param response 经由[onResponseConvert]转换后的数据结果
@@ -185,7 +290,10 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
 
     /**
      * 提取或设置服务返回的失败结果消息
+     *
      * 在服务请求失败后调用，即[onRequestResult]返回值为false时被调用
+     *
+     * @suppress 此生命周期总是在[Dispatchers.IO]中执行，即不受[execute]的[CoroutineContext]参数影响
      *
      * @param data 本次请求中流转的数据
      * @param response 经由[onResponseConvert]转换后的数据结果
@@ -196,7 +304,10 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
 
     /**
      * 服务器响应数据解析失败后调用
+     *
      * 即在[Work.onParse]返回false时调用
+     *
+     * @suppress 此生命周期总是在[Dispatchers.IO]中执行，即不受[execute]的[CoroutineContext]参数影响
      *
      * @param data 本次请求中流转的数据
      *
@@ -206,7 +317,10 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
 
     /**
      * 网络连接建立成功，但是服务器响应错误时调用
+     *
      * 即响应码不是2xx，如4xx，5xx等
+     *
+     * @suppress 此生命周期总是在[Dispatchers.IO]中执行，即不受[execute]的[CoroutineContext]参数影响
      *
      * @param data 本次请求中流转的数据
      *
@@ -217,6 +331,8 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
     /**
      *  网络连接建立失败时调用，即网络不可用
      *
+     *  @suppress 此生命周期总是在[Dispatchers.IO]中执行，即不受[execute]的[CoroutineContext]参数影响
+     *
      *  @param data 本次请求中流转的数据
      *
      *  @return 网络无效时的消息，将会设置给[WorkData.message]
@@ -225,8 +341,11 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
 
     /**
      * 本次任务执行成功(即[onRequestResult]返回值为true)完成后执行
-     * 该方法在[onFinished]之前被调用
+     *
+     * 该方法在[onFinished]之前被调用，
      * 该方法与[onCanceled]和[onFailed]互斥
+     *
+     * @suppress 本方法禁止抛出异常，否则会破坏[Work]流程，如有危险操作请自行捕获异常
      *
      * @param data 本次请求中流转的数据
      */
@@ -234,28 +353,37 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
 
     /**
      * 本次任务执行失败后执行
-     * 该方法在[onFinished]之前被调用
+     *
+     * 该方法在[onFinished]之前被调用，
      * 该方法与[onCanceled]和[onSuccessful]互斥
+     *
+     * @suppress 本方法禁止抛出异常，否则会破坏[Work]流程，如有危险操作请自行捕获异常
      *
      * @param data 本次请求中流转的数据
      */
     protected open suspend fun onFailed(data: T) = Unit
 
     /**
-     * 最后执行的一个方法
-     * 此方法为最后一个生命周期方法，总是被执行
-     * 如果协程取消时需要在此方法中执行多个挂起任务，请自行切换到[kotlinx.coroutines.NonCancellable]
-     *
-     * @param data 本次请求中流转的数据
-     */
-    protected open suspend fun onFinished(data: T) = Unit
-
-    /**
      * 任务被取消（协程取消）时调用
+     *
      * 该方法在[onFinished]之前被调用
      * 该方法与[onSuccessful]和[onFailed]互斥
+     *
+     * @suppress 本方法禁止抛出异常，否则会破坏[Work]流程，如有危险操作请自行捕获异常
      *
      * @param data 本次请求中流转的数据
      */
     protected open suspend fun onCanceled(data: T) = Unit
+
+    /**
+     * 最后执行的一个方法
+     *
+     * 此方法为最后一个生命周期方法，总是被执行
+     * 如果协程取消时需要在此方法中执行多个挂起任务，请自行切换到[kotlinx.coroutines.NonCancellable]
+     *
+     * @suppress 本方法禁止抛出异常，否则会破坏[Work]流程，如有危险操作请自行捕获异常
+     *
+     * @param data 本次请求中流转的数据
+     */
+    protected open suspend fun onFinished(data: T) = Unit
 }

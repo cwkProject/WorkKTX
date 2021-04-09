@@ -1,13 +1,8 @@
 package org.cwk.work.example
 
-import com.google.gson.Gson
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import org.junit.Test
-import kotlin.coroutines.suspendCoroutine
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -17,48 +12,50 @@ import kotlin.coroutines.suspendCoroutine
 class ExampleUnitTest {
     @Test
     fun addition_isCorrect() = runBlocking {
-        val data = B("B test")
-        val string = Json.encodeToString(data)
-        println(string)
 
-        val gson = Gson().toJson(data)
-        println(gson)
+        val channel = Channel<Int>()
 
-        data.testSuspend()
+        val job = launch {
+            println("1 launch")
 
-        data.start(0, { current, total, done ->
-            println("start $current $total $done")
-        }) { current, total, done ->
-            println("start $current $total $done")
+            async {
+                println("async start")
+                delay(2000)
+                println("async end")
+            }.start()
+            yield()
+            subScope()
+            channel.close()
+            println("subScope finish")
+        }
+
+        job.invokeOnCompletion {
+            println("job finally 1 $it")
+            channel.close()
+        }
+
+        job.invokeOnCompletion {
+            println("job finally 2 $it")
+            channel.close()
+        }
+
+        delay(2000)
+        println("1 join")
+        job.cancelAndJoin()
+    }
+
+    suspend fun subScope() = coroutineScope {
+        launch {
+            println("2 launch")
+            delay(1000)
+            println("2 end")
+        }
+
+        launch {
+            println("3 launch")
+            delay(1000)
+            println("3 end")
         }
     }
 }
 
-typealias OnProgress = (current: Int, total: Int, done: Boolean) -> Unit
-
-abstract class A {
-
-    private val _log = "${javaClass.simpleName}@${this.hashCode().toString(16)}"
-
-    @Transient
-    open val httpM = "A httpM"
-
-    open suspend fun testSuspend() = coroutineScope {
-        println("testSuspend A")
-    }
-
-    fun start(retry: Int = 0, send: OnProgress? = null, receive: OnProgress? = null) {
-        send?.invoke(1, 1, true)
-        receive?.invoke(2, 2, false)
-    }
-}
-
-@Serializable
-class B(val url: String = "B url") : A() {
-
-    override val httpM = "B httpM"
-
-    override suspend fun testSuspend() {
-        println("testSuspend B")
-    }
-}

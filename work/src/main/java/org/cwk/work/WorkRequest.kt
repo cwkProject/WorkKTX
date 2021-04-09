@@ -11,11 +11,13 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okio.ByteString
 import java.io.File
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.CoroutineContext
 
 /**
  * 实际的网络请求构建函数
- * 用于配置和生成[Call]，后续由框架负责执行请求
- * 总是在[kotlinx.coroutines.Dispatchers.IO]中执行
+ *
+ * 用于配置和生成[Call]，后续由框架负责执行请求，
+ * 在[Work.execute]的[CoroutineContext]参数指定的调度线程中执行
  *
  * @param tag 为跟踪日志标签
  * @param options 为请求所需的全部参数
@@ -115,15 +117,14 @@ fun workRequestBodyBuilder(config: WorkConfig, options: Options): RequestBody? {
     if (options.method == HttpMethod.GET || options.method == HttpMethod.HEAD) {
         return null
     }
-    val contentType = options.contentType ?: config.defaultPostContentType
+    val contentType = options.contentType ?: config.defaultContentType
     return when (val params = options.params) {
+        is RequestBody -> params
         is String -> params.toRequestBody(contentType)
+        is Map<*, *> -> params.toRequestBody(contentType, options.listFormat ?: config.listFormat)
         is ByteString -> params.toRequestBody(contentType)
         is ByteArray -> params.toRequestBody(contentType)
         is File -> params.asRequestBody(contentType)
-        is FormBody -> params
-        is MultipartBody -> params
-        is Map<*, *> -> params.toRequestBody(contentType, options.listFormat ?: config.listFormat)
         else -> null
     }
 }

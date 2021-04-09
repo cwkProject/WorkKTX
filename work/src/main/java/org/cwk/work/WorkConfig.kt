@@ -8,12 +8,11 @@ import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 import kotlin.properties.Delegates
 
-
 /**
  * Work库全局网络客户端配置
  *
  * @property client 默认的[OkHttpClient]客户端
- * @property defaultPostContentType 默认的POST请求体的Content-Type类型
+ * @property defaultContentType 默认的请求体的Content-Type类型
  * @property baseUrl 根路径
  *                   如果为空则每个请求必须指定完整的请求地址，
  *                   如果不为空则每个请求可以简单指定相对路径或完整地址（优先使用完整地址）
@@ -25,7 +24,7 @@ data class WorkConfig(
         .readTimeout(30, TimeUnit.SECONDS)
         .writeTimeout(30, TimeUnit.SECONDS)
         .build(),
-    val defaultPostContentType: MediaType = "application/x-www-form-urlencoded".toMediaType(),
+    val defaultContentType: MediaType = "application/x-www-form-urlencoded".toMediaType(),
     val baseUrl: String = "",
     val listFormat: ListFormat = ListFormat.MULTI,
     val workRequest: WorkRequest = ::workRequestImp,
