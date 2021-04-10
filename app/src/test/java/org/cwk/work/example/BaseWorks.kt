@@ -13,7 +13,7 @@ import java.io.InputStream
  * 简单的将[JsonElement]（由于测试环境没有android支持环境，不能使用[org.json.JSONObject]，实际使用中通常使用[org.json.JSONObject]）作为结果数据的中间处理类的[Work]基类，
  * 此方式无多余依赖，兼容性强，处理便捷
  */
-abstract class BaseJsonElementWorks<D> : Work<D, WorkData<D>, JsonElement>() {
+abstract class BaseJsonElementWork<D> : Work<D, WorkData<D>, JsonElement>() {
     override fun onCreateWorkData() = WorkData<D>()
 
     override suspend fun onResponseConvert(data: WorkData<D>, body: ResponseBody): JsonElement =
@@ -35,7 +35,7 @@ abstract class BaseJsonElementWorks<D> : Work<D, WorkData<D>, JsonElement>() {
  *
  * 中间处理数据直接使用[InputStream]方便写入文件或在内存中处理
  */
-abstract class BaseDownloadWorks<D> : Work<D, WorkData<D>, InputStream>() {
+abstract class BaseDownloadWork<D> : Work<D, WorkData<D>, InputStream>() {
     override fun onCreateWorkData() = WorkData<D>()
 
     override suspend fun onResponseConvert(data: WorkData<D>, body: ResponseBody): InputStream =
@@ -66,7 +66,7 @@ abstract class BaseDownloadWorks<D> : Work<D, WorkData<D>, InputStream>() {
  *
  * ```
  */
-abstract class BaseBinWorks<D> : Work<D, WorkData<D>, Bin>() {
+abstract class BaseBinWork<D> : Work<D, WorkData<D>, Bin>() {
     override fun onCreateWorkData() = WorkData<D>()
 
     override suspend fun onResponseConvert(data: WorkData<D>, body: ResponseBody): Bin =

@@ -20,7 +20,7 @@ import org.cwk.work.WorkData
  * @property delay 延迟时间，单位秒，最大10
  */
 class DelayWork(private val testData: TestData, private val delay: Int) :
-    BaseJsonElementWorks<String>() {
+    BaseJsonElementWork<String>() {
     override fun url() = "/delay/$delay"
 
     override suspend fun fillParams() = mapOf(
@@ -53,7 +53,7 @@ class DelayWork(private val testData: TestData, private val delay: Int) :
  *
  * @property user 模拟用户数据发给服务器，同时接受此用户数据响应作为收到服务器登录用户的模拟
  */
-class UserLoginWork(private val user: User) : BaseBinWorks<User>() {
+class UserLoginWork(private val user: User) : BaseBinWork<User>() {
     override fun url() = "/post"
 
     override fun httpMethod() = HttpMethod.POST
@@ -76,7 +76,7 @@ class UserLoginWork(private val user: User) : BaseBinWorks<User>() {
  */
 @Serializable
 class UserRegisterWork(private val accountId: String, private val nickname: String) :
-    BaseBinWorks<User>() {
+    BaseBinWork<User>() {
     override fun url() = "/post"
 
     override fun httpMethod() = HttpMethod.POST

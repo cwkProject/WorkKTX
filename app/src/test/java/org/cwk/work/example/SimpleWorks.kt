@@ -14,7 +14,7 @@ import java.io.InputStream
  *
  * @property testData 需要发送的测试数据
  */
-class SimpleGetWork(private val testData: TestData) : BaseJsonElementWorks<String>() {
+class SimpleGetWork(private val testData: TestData) : BaseJsonElementWork<String>() {
     override fun url() = "/get"
 
     override suspend fun fillParams() = mapOf(
@@ -31,7 +31,7 @@ class SimpleGetWork(private val testData: TestData) : BaseJsonElementWorks<Strin
  *
  * @property params 已经用 key=value&key2=value2拼接好的未urlencoded转码的参数
  */
-class SimpleGetAnyWork(private val params: String) : BaseJsonElementWorks<String>() {
+class SimpleGetAnyWork(private val params: String) : BaseJsonElementWork<String>() {
     override fun url() = "/get"
 
     override suspend fun fillParams() = params
@@ -45,7 +45,7 @@ class SimpleGetAnyWork(private val params: String) : BaseJsonElementWorks<String
  *
  * @property params 已经用 key=value&key2=value2拼接好的已经过urlencoded转码的参数
  */
-class SimpleGetQueryWork(private val params: String) : BaseJsonElementWorks<String>() {
+class SimpleGetQueryWork(private val params: String) : BaseJsonElementWork<String>() {
     override fun url() = "/get?$params"
 
     override suspend fun fillParams() = Unit // 地址中已经有参数，此处必须留空，否则会覆盖地址中的参数
@@ -59,7 +59,7 @@ class SimpleGetQueryWork(private val params: String) : BaseJsonElementWorks<Stri
  *
  * @property testData 需要发送的测试数据
  */
-class SimplePostWork(private val testData: TestData) : BaseJsonElementWorks<TestData>() {
+class SimplePostWork(private val testData: TestData) : BaseJsonElementWork<TestData>() {
     override fun url() = "/post"
 
     override fun httpMethod() = HttpMethod.POST
@@ -81,7 +81,7 @@ class SimplePostWork(private val testData: TestData) : BaseJsonElementWorks<Test
  *
  * @property form 需要发送的测试数据
  */
-class SimpleFormWork(private val form: Map<*, *>) : BaseJsonElementWorks<Map<*, *>>() {
+class SimpleFormWork(private val form: Map<*, *>) : BaseJsonElementWork<Map<*, *>>() {
     override fun url() = "/post"
 
     // 全局默认的content-type为 application/x-www-form-urlencoded
@@ -100,7 +100,7 @@ class SimpleFormWork(private val form: Map<*, *>) : BaseJsonElementWorks<Map<*, 
  *
  * @property testData 需要发送的测试数据
  */
-class SimplePutWork(private val testData: TestData) : BaseJsonElementWorks<TestData>() {
+class SimplePutWork(private val testData: TestData) : BaseJsonElementWork<TestData>() {
     override fun url() = "/put"
 
     // 全局默认的content-type为 application/x-www-form-urlencoded
@@ -123,7 +123,7 @@ class SimplePutWork(private val testData: TestData) : BaseJsonElementWorks<TestD
  *
  * @property testData 需要发送的测试数据
  */
-class SimplePatchWork(private val testData: TestData) : BaseJsonElementWorks<TestData>() {
+class SimplePatchWork(private val testData: TestData) : BaseJsonElementWork<TestData>() {
     override fun url() = "/patch"
 
     // 全局默认的content-type为 application/x-www-form-urlencoded
@@ -167,7 +167,7 @@ class SimpleHeadWork : Work<Unit, WorkData<Unit>, Unit>() {
  *
  * 空参数任务
  */
-class SimpleDeleteWork : BaseJsonElementWorks<Unit>() {
+class SimpleDeleteWork : BaseJsonElementWork<Unit>() {
     override fun url() = "/delete"
 
     override fun httpMethod() = HttpMethod.DELETE
@@ -182,7 +182,7 @@ class SimpleDeleteWork : BaseJsonElementWorks<Unit>() {
  *
  * @property buffer 需要上传的内存文件（测试环境没有准备本地文件）
  */
-class SimpleUploadWork(private val buffer: ByteArray) : BaseJsonElementWorks<Unit>() {
+class SimpleUploadWork(private val buffer: ByteArray) : BaseJsonElementWork<Unit>() {
     override fun url() = "/post"
 
     override fun httpMethod() = HttpMethod.POST
@@ -203,7 +203,7 @@ class SimpleUploadWork(private val buffer: ByteArray) : BaseJsonElementWorks<Uni
 /**
  * 简单下载任务
  */
-class SimpleDownloadWork : BaseDownloadWorks<ByteArray>() {
+class SimpleDownloadWork : BaseDownloadWork<ByteArray>() {
     override fun url() = "image/webp"
 
     override suspend fun fillParams() = Unit
