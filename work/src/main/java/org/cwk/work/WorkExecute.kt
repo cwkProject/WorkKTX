@@ -165,6 +165,7 @@ fun <D, T : WorkData<D>, H> Work<D, T, H>.launch(
 
 /**
  * 使用[CoroutineScope.launch]协程构建器执行任务并在[block]中返回任务结果[T]
+ * 使用[SendChannel]监听进度的特殊版本
  *
  * 此模式为启动协程+执行任务的组合快捷方式
  *
@@ -178,7 +179,7 @@ fun <D, T : WorkData<D>, H> Work<D, T, H>.launch(
  *
  * @return 包含执行结果的包装类[T]
  */
-fun <D, T : WorkData<D>, H> Work<D, T, H>.launch(
+fun <D, T : WorkData<D>, H> Work<D, T, H>.launchWithChannel(
     coroutineScope: CoroutineScope? = null,
     context: CoroutineContext = EmptyCoroutineContext,
     start: CoroutineStart = CoroutineStart.DEFAULT,
@@ -250,6 +251,7 @@ fun <D, T : WorkData<D>, H, R> Work<D, T, H>.async(
 
 /**
  * 使用[CoroutineScope.async]协程构建器执行任务并在[block]中返回任务结果[T]
+ * 使用[SendChannel]监听进度的特殊版本
  *
  * 此模式为启动协程+执行任务的组合快捷方式
  *
@@ -263,7 +265,7 @@ fun <D, T : WorkData<D>, H, R> Work<D, T, H>.async(
  *
  * @return 包含执行结果的包装类[T]
  */
-fun <D, T : WorkData<D>, H, R> Work<D, T, H>.async(
+fun <D, T : WorkData<D>, H, R> Work<D, T, H>.asyncWithChannel(
     coroutineScope: CoroutineScope? = null,
     context: CoroutineContext = EmptyCoroutineContext,
     start: CoroutineStart = CoroutineStart.DEFAULT,

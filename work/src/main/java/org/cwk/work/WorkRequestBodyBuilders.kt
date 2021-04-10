@@ -40,7 +40,7 @@ internal fun Map<*, *>.toRequestBody(contentType: MediaType, listFormat: ListFor
             }
         }
     }.build()
-    contentType.toString() == "application/x-www-form-urlencoded" -> FormBody.Builder().apply {
+    contentType == MediaType.FORM_DATA -> FormBody.Builder().apply {
         handleSequence(listFormat) { key, value -> add(key, "$value") }
     }.build()
     else -> throw IllegalArgumentException("unsupported auto convert $contentType")
@@ -70,10 +70,10 @@ private fun Map<*, *>.handleSequence(listFormat: ListFormat, handler: (String, A
                 if (key.isEmpty()) {
                     readNext("${it.key}", it.value)
                 } else {
-                    readNext("key[${it.key}]", it.value)
+                    readNext("$key[${it.key}]", it.value)
                 }
             }
-            data != null -> handler(key, data)
+            is Any -> handler(key, data)
         }
     }
 

@@ -24,7 +24,7 @@ data class WorkConfig(
         .readTimeout(30, TimeUnit.SECONDS)
         .writeTimeout(30, TimeUnit.SECONDS)
         .build(),
-    val defaultContentType: MediaType = "application/x-www-form-urlencoded".toMediaType(),
+    val defaultContentType: MediaType = MediaType.FORM_DATA,
     val baseUrl: String = "",
     val listFormat: ListFormat = ListFormat.MULTI,
     val workRequest: WorkRequest = ::workRequestImp,
@@ -58,3 +58,26 @@ data class WorkConfig(
         val configs = mutableMapOf<String, WorkConfig>()
     }
 }
+
+private val mJson = "application/json; charset=utf-8".toMediaType()
+
+private val mFormData = "application/x-www-form-urlencoded".toMediaType()
+
+private val mMultipart = "multipart/form-data".toMediaType()
+
+/**
+ * "application/json" Content-type
+ */
+val MediaType.Companion.JSON get() = mJson
+
+/**
+ * "application/x-www-form-urlencoded" Content-type
+ */
+val MediaType.Companion.FORM_DATA get() = mFormData
+
+/**
+ * "multipart/form-data" Content-type
+ *
+ * 通常用于上传文件
+ */
+val MediaType.Companion.MULTIPART get() = mMultipart

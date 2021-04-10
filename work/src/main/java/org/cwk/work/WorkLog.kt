@@ -22,6 +22,13 @@ var workLog: WorkLog = { priority, tag, message, data ->
         Log.println(priority, tag, it)
     }
 }
+    set(value) {
+        field = value
+
+        if (printLog != emptyLog) {
+            printLog = value
+        }
+    }
 
 /**
  * 用于关联实际执行的日志函数

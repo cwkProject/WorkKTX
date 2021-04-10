@@ -41,6 +41,8 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
 
     /**
      * 创建数据模型对象的实例
+     *
+     * @return [WorkData]类或子类实例，通常在用户项目中的通用[Work]基类中实现
      */
     protected abstract fun onCreateWorkData(): T
 
@@ -67,12 +69,12 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
     /**
      * 网络请求地址
      *
-     * 可以是完整地址，也可以是相对地址（需要设置baseUrl，查看[WorkConfig.baseUrl]）
+     * @return 可以是完整地址，也可以是相对地址（需要设置baseUrl，查看[WorkConfig.baseUrl]）
      */
     protected abstract fun url(): String
 
     /**
-     * 网络请求方法
+     * http请求方法
      */
     protected open fun httpMethod() = HttpMethod.GET
 

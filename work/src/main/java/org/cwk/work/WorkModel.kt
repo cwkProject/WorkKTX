@@ -205,6 +205,8 @@ enum class WorkErrorType {
 /**
  * [Work]执行返回的数据包装类，包含单次任务执行周期的全部请求和响应数据
  *
+ * 用户可以根据自己的通用响应协议数据结构继承此类添加自己的通用数据。
+ *
  * @param T 类型的业务数据实例
  */
 open class WorkData<T> {
@@ -299,7 +301,7 @@ data class FileWithMimeType(val file: File, val mimeType: String, val name: Stri
 data class ByteArrayWithMimeType(
     val byteArray: ByteArray,
     val mimeType: String,
-    val name: String? = null
+    val name: String
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -317,7 +319,7 @@ data class ByteArrayWithMimeType(
     override fun hashCode(): Int {
         var result = byteArray.contentHashCode()
         result = 31 * result + mimeType.hashCode()
-        result = 31 * result + (name?.hashCode() ?: 0)
+        result = 31 * result + (name.hashCode() ?: 0)
         return result
     }
 }
