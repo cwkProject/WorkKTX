@@ -319,7 +319,7 @@ data class ByteArrayWithMimeType(
     override fun hashCode(): Int {
         var result = byteArray.contentHashCode()
         result = 31 * result + mimeType.hashCode()
-        result = 31 * result + (name.hashCode() ?: 0)
+        result = 31 * result + name.hashCode()
         return result
     }
 }

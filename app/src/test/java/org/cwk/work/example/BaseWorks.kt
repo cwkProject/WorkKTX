@@ -2,12 +2,8 @@
 
 package org.cwk.work.example
 
-import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.*
-import kotlinx.serialization.modules.PolymorphicModuleBuilder
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.serializersModuleOf
 import okhttp3.ResponseBody
 import org.cwk.work.Work
 import org.cwk.work.WorkData

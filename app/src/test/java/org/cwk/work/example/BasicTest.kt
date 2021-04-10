@@ -1,8 +1,8 @@
 package org.cwk.work.example
 
-import junit.framework.Assert.assertEquals
 import kotlinx.coroutines.runBlocking
 import org.cwk.work.*
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import java.net.URLEncoder
