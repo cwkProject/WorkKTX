@@ -1,12 +1,8 @@
-apply plugin: 'com.jfrog.bintray'
 apply plugin: 'maven-publish'
+apply plugin: 'signing'
 
 // load properties
 Properties properties = new Properties()
-File localPropertiesFile = project.file("local.properties")
-if(localPropertiesFile.exists()){
-    properties.load(localPropertiesFile.newDataInputStream())
-}
 File projectPropertiesFile = project.file("project.properties")
 if(projectPropertiesFile.exists()){
     properties.load(projectPropertiesFile.newDataInputStream())
@@ -20,13 +16,6 @@ def projectVersionName = android.defaultConfig.versionName
 def projectPackaging = properties.getProperty("project.packaging")
 def projectSiteUrl = properties.getProperty("project.siteUrl")
 def projectGitUrl = properties.getProperty("project.gitUrl")
-
-def developerId = properties.getProperty("developer.id")
-def developerName = properties.getProperty("developer.name")
-def developerEmail = properties.getProperty("developer.email")
-
-def bintrayUser = properties.getProperty("bintray.user")
-def bintrayApikey = properties.getProperty("bintray.apikey")
 
 afterEvaluate {
     publishing {
@@ -55,9 +44,9 @@ afterEvaluate {
                     }
                     developers {
                         developer {
-                            id = developerId
-                            name = developerName
-                            email = developerEmail
+                            id = '\\u8D85\\u609F\\u7A7A'
+                            name = '\\u8D85\\u609F\\u7A7A'
+                            email = '39251474@163.com'
                         }
                     }
                     scm {
@@ -70,18 +59,7 @@ afterEvaluate {
         }
     }
 
-    // bintray configuration
-    bintray {
-        user = bintrayUser
-        key = bintrayApikey
-        publications = ['release']
-        pkg {
-            repo = "maven"
-            name = "work"
-            websiteUrl = projectSiteUrl
-            vcsUrl = projectGitUrl
-            licenses = ["Apache-2.0"]
-            publish = true
-        }
+    signing {
+        sign publishing.publications.release
     }
 }

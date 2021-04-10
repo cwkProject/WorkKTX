@@ -10,7 +10,7 @@ android {
         minSdkVersion 19
         targetSdkVersion 30
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
     }
 
     buildTypes {
@@ -34,4 +34,4 @@ dependencies {
     api 'com.squareup.okhttp3:okhttp:4.9.1'
 }
 
-apply from: "bintrayUpload.gradle"
+apply from: "mavenUpload.gradle"
