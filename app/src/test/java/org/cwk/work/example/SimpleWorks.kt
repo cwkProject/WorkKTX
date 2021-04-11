@@ -2,6 +2,7 @@
 
 package org.cwk.work.example
 
+import kotlinx.coroutines.delay
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 import okhttp3.MediaType
@@ -52,6 +53,17 @@ class SimpleGetQueryWork(private val params: String) : BaseJsonElementWork<Strin
 
     override suspend fun onRequestSuccess(data: WorkData<String>, response: JsonElement): String? =
         response.jsonObject["args"]?.toString() // 返回发送的数据
+}
+
+/**
+ * 总是返回500的任务
+ */
+class SimpleErrorWork() : BaseJsonElementWork<Unit>() {
+    override fun url() = "/status/500"
+
+    override suspend fun fillParams() = Unit
+
+    override suspend fun onRequestSuccess(data: WorkData<Unit>, response: JsonElement) = Unit
 }
 
 /**

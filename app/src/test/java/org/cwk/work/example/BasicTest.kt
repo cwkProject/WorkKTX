@@ -1,5 +1,7 @@
 package org.cwk.work.example
 
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.cwk.work.*
 import org.junit.Assert.assertEquals
@@ -54,6 +56,19 @@ class BasicTest {
         val d = "name=${URLEncoder.encode("超悟空", "UTF-8")}&age=32"
 
         val work = SimpleGetQueryWork(d).start()
+
+        if (work.success) {
+            println("work result ${work.result}")
+        } else {
+            println("work error ${work.errorType} message ${work.message}")
+        }
+    }
+
+    @Test
+    fun reTryTest() = runBlocking {
+
+        // 尝试最多5次重试
+        val work = SimpleErrorWork().start(5)
 
         if (work.success) {
             println("work result ${work.result}")
