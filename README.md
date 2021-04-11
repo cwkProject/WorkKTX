@@ -13,7 +13,14 @@ on gradle
 
 ```gradle
 
-implementation 'org.cwk.kotlin:work:1.0.0'
+repositories {
+  google()
+  mavenCentral()
+}
+
+dependencies {
+  implementation 'org.cwk.kotlin:work:1.0.0'
+}
 
 ```
 
