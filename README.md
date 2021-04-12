@@ -308,4 +308,4 @@ WorkConfig.defaultConfig = WorkConfig(baseUrl = "http://httpbin.org/")
 ## 其他Work生命周期函数
 
 `Work`中还有很多其它生命周期方法，用于处理接口的各种任务，原则是接口数据处理由接口自己(即`Work`)处理。
-其它更多实用方法可以参考项目[单元测试](https://github.com/cwkProject/WorkKTX/tree/master/app/src/test/java/org/cwk/work/example).
+其它更多实用方法可以参考项目[测试用例](https://github.com/cwkProject/WorkKTX/tree/master/app/src/test/java/org/cwk/work/example).
