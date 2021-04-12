@@ -38,10 +38,9 @@ enum class HttpMethod {
  * 请求参数子序列的自动化装配时的格式化类型
  *
  * 仅当Content-Type为"application/x-www-form-urlencoded"或"multipart/form-data"，且[Work.fillParams]返回[Map]类型时有效，
- * 在框架将[Map]转换为[FormBody]或[MultipartBody]时遇到value为[List]时的序列化格式，
- * 为了不发生顺序错乱，格式错误等意外问题，子序列仅支持[List]类型数据，请用户自行将集合转换为[List]。
+ * 在框架将[Map]转换为[FormBody]或[MultipartBody]时遇到value为[Collection]或[Array]时的序列化格式，
  *
- * 如需对子序列指定单独的[ListFormat]，请在[Map]中将值设置为[ListParams]类型。
+ * 如需对子序列指定单独的[ListFormat]，请在[Map]中将值设置为[ListParams]或[ArrayParams]类型。
  *
  * 框架默认值[ListFormat.MULTI]
  */
@@ -272,7 +271,38 @@ open class WorkData<T> {
  *
  * @see ListFormat
  */
-data class ListParams(val format: ListFormat, val values: List<*>)
+data class ListParams(val format: ListFormat, val values: Collection<*>)
+
+/**
+ * 拥有独立序列化格式的子数组包装类
+ *
+ * 在框架自动序列化数据时覆盖默认[ListFormat]格式，
+ * 指明使用[format]拼接格式，此配置仅影响[values]的序列化。
+ *
+ * @property format 此子序列的序列化格式
+ * @property values 实际的子数组数据
+ *
+ * @see ListFormat
+ */
+data class ArrayParams(val format: ListFormat, val values: Array<*>) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as ArrayParams
+
+        if (format != other.format) return false
+        if (!values.contentEquals(other.values)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = format.hashCode()
+        result = 31 * result + values.contentHashCode()
+        return result
+    }
+}
 
 /**
  * 带有指定的mimeType的文件包装类

@@ -51,7 +51,7 @@ internal fun Map<*, *>.toRequestBody(contentType: MediaType, listFormat: ListFor
  */
 private fun Map<*, *>.handleSequence(listFormat: ListFormat, handler: (String, Any) -> Unit) {
     fun readNext(key: String, data: Any?) {
-        fun handleList(data: List<*>, listFormat: ListFormat) = when (listFormat) {
+        fun handleList(data: Collection<*>, listFormat: ListFormat) = when (listFormat) {
             ListFormat.MULTI, ListFormat.MULTI_COMPATIBLE -> data.forEachIndexed { index, value ->
                 val isCollection = value is Map<*, *> || value is List<*> || value is ListParams
                 if (listFormat == ListFormat.MULTI) {
@@ -63,9 +63,11 @@ private fun Map<*, *>.handleSequence(listFormat: ListFormat, handler: (String, A
             else -> readNext(key, data.joinToString(listFormat.separator()))
         }
 
+
+
         when (data) {
             is ListParams -> handleList(data.values, data.format)
-            is List<*> -> handleList(data, listFormat)
+            is Collection<*> -> handleList(data, listFormat)
             is Map<*, *> -> data.forEach {
                 if (key.isEmpty()) {
                     readNext("${it.key}", it.value)
@@ -73,6 +75,8 @@ private fun Map<*, *>.handleSequence(listFormat: ListFormat, handler: (String, A
                     readNext("$key[${it.key}]", it.value)
                 }
             }
+            is ArrayParams -> handleList(data.values.toList(), data.format)
+            is Array<*> -> handleList(data.toList(), listFormat)
             is Any -> handler(key, data)
         }
     }
