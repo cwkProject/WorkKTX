@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-  implementation 'org.cwk.kotlin:work:1.0.0'
+  implementation 'io.github.cwkProject:work:1.0.0'
 }
 
 ```
