@@ -309,3 +309,23 @@ WorkConfig.defaultConfig = WorkConfig(baseUrl = "http://httpbin.org/")
 
 `Work`中还有很多其它生命周期方法，用于处理接口的各种任务，原则是接口数据处理由接口自己(即`Work`)处理。
 其它更多实用方法可以参考项目[测试用例](https://github.com/cwkProject/WorkKTX/tree/master/app/src/test/java/org/cwk/work/example).
+
+## License
+
+```License
+
+Copyright 2021 超悟空, Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+```
