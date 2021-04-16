@@ -60,7 +60,7 @@ afterEvaluate {
 
         repositories {
             maven {
-                url = layout.buildDirectory.dir('repo')
+                url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
             }
         }
     }
