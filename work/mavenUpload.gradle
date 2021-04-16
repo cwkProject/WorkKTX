@@ -1,5 +1,6 @@
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
+apply plugin: 'io.codearte.nexus-staging'
 
 // load properties
 Properties properties = new Properties()
@@ -10,6 +11,7 @@ if(projectPropertiesFile.exists()){
 
 // read properties
 def projectName = properties.getProperty("project.name")
+def projectDescription = properties.getProperty("project.description")
 def projectGroupId = properties.getProperty("project.groupId")
 def projectArtifactId = properties.getProperty("project.artifactId")
 def projectVersionName = android.defaultConfig.versionName
@@ -34,6 +36,7 @@ afterEvaluate {
 
                 pom {
                     name = projectName
+                    description = projectDescription
                     packaging = projectPackaging
                     url = projectSiteUrl
                     licenses {
@@ -61,6 +64,11 @@ afterEvaluate {
         repositories {
             maven {
                 url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+
+                credentials {
+                    username ossrhUsername
+                    password ossrhPassword
+                }
             }
         }
     }
@@ -68,4 +76,11 @@ afterEvaluate {
     signing {
         sign publishing.publications.release
     }
+}
+
+nexusStaging {
+    serverUrl = "https://s01.oss.sonatype.org/service/local/"
+    packageGroup = projectGroupId
+    username = ossrhUsername
+    password = ossrhPassword
 }

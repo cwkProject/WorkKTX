@@ -1,6 +1,6 @@
 # work
 
-[![maven central](https://maven-badges.herokuapp.com/maven-central/org.cwk.kotlin/work/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.cwk.kotlin/work)
+[![maven central](https://maven-badges.herokuapp.com/maven-central/io.github.cwkproject/work/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.cwkproject/work)
 
 * 封装http业务接口协议，提供标准使用流程，基于kotlin协程和OkHttp实现，与公司http规范紧密结合，规范团队成员接口编写和使用方式。
 * 核心设计理念为封装http接口的请求数据和响应数据的序列化和反序列化，接口调用处不能出现任何解析http数据的代码。
