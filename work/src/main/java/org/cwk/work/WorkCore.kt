@@ -66,6 +66,31 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
      */
     protected open fun onParamsError(): String? = null
 
+
+    /**
+     * 任务启动前调用
+     *
+     * 此处可以用于做操作记录、数据统计，特殊变量[WorkData.extra]创建等，
+     * 也可以从缓存加载任务结果拦截后续网络请求实现可缓存任务。
+     *
+     * @param data 本次请求中流转的数据
+     *
+     * @return 如果返回有效数据实例，则框架会认为这是从本地缓存加载的数据结果，并且会跳过后续的网络请求，直接进入[onFinished]
+     */
+    protected open suspend fun onStarted(data: T): D? = null
+
+    /**
+     * 设置从缓存加载数据成功后的消息
+     *
+     * 当[onStarted]返回有效数据实例时，框架将会认为本次任务完成了缓存加载，此时触发本方法，
+     * 可以给[WorkData.message]设置一个合适的内容。
+     *
+     * @param data 本次请求中流转的数据
+     *
+     * @return 缓存加载的消息，将会设置给[WorkData.message]
+     */
+    protected open fun onFromCacheMessage(data: T): String? = null
+
     /**
      * 网络请求地址
      *
@@ -200,15 +225,6 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
     protected open suspend fun onPostOptions(options: Options) = Unit
 
     /**
-     * 即将执行网络请求前的回调
-     *
-     * 此处可以用于做数据统计，特殊变量[WorkData.extra]创建等
-     *
-     * @param data 本次请求中流转的数据
-     */
-    protected open suspend fun onWillRequest(data: T) = Unit
-
-    /**
      * 覆盖请求实现方法
      *
      * 默认实现为[workRequestImp]
@@ -260,7 +276,7 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
      *
      * @return 请求成功后的任务返回真正结果数据对象[D]，将会设置给[WorkData.result]
      */
-    protected abstract suspend fun onRequestSuccess(data: T, response: H): D?
+    protected abstract suspend fun onRequestSuccessful(data: T, response: H): D?
 
     /**
      * 提取或设置服务返回的成功结果消息
@@ -274,7 +290,7 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
      *
      * @return 成功消息，将会设置给[WorkData.message]
      */
-    protected open fun onRequestSuccessMessage(data: T, response: H): String? = null
+    protected open fun onRequestSuccessfulMessage(data: T, response: H): String? = null
 
     /**
      * 提取或设置服务执行失败时的返回结果数据
@@ -345,7 +361,10 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
      * 本次任务执行成功(即[onRequestResult]返回值为true)完成后执行
      *
      * 该方法在[onFinished]之前被调用，
-     * 该方法与[onCanceled]和[onFailed]互斥
+     * 该方法与[onCanceled]和[onFailed]互斥。
+     *
+     * 如果任务结果从缓存加载，即[onStarted]返回值不为null，则该方法不会执行，
+     * 也就是说此方法一定会在网络请求数据成功解析后被执行，这里是个写入缓存的好地方。
      *
      * @suppress 本方法禁止抛出异常，否则会破坏[Work]流程，如有危险操作请自行捕获异常
      *

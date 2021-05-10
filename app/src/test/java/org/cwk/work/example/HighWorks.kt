@@ -28,24 +28,11 @@ class DelayWork(private val testData: TestData, private val delay: Int) :
         "age" to testData.age,
     ) // 交给框架自动装配
 
-    override suspend fun onRequestSuccess(data: WorkData<String>, response: JsonElement): String? =
+    override suspend fun onRequestSuccessful(
+        data: WorkData<String>,
+        response: JsonElement
+    ): String? =
         response.jsonObject["args"]?.toString()
-
-    override suspend fun onSuccessful(data: WorkData<String>) {
-        println("DelayWork do onSuccessful")
-    }
-
-    override suspend fun onFailed(data: WorkData<String>) {
-        println("DelayWork do onFailed")
-    }
-
-    override suspend fun onCanceled(data: WorkData<String>) {
-        println("DelayWork do onCanceled")
-    }
-
-    override suspend fun onFinished(data: WorkData<String>) {
-        println("DelayWork do onFinished")
-    }
 }
 
 /**
@@ -62,7 +49,7 @@ class UserLoginWork(private val user: User) : BaseBinWork<User>() {
 
     override suspend fun fillParams() = Json.encodeToString(user)
 
-    override suspend fun onRequestSuccess(data: WorkData<User>, response: Bin): User? =
+    override suspend fun onRequestSuccessful(data: WorkData<User>, response: Bin): User? =
         response.json?.let { Json.decodeFromJsonElement(it) }
 }
 
@@ -85,6 +72,42 @@ class UserRegisterWork(private val accountId: String, private val nickname: Stri
 
     override suspend fun fillParams() = Json.encodeToString(this)
 
-    override suspend fun onRequestSuccess(data: WorkData<User>, response: Bin): User? =
+    override suspend fun onRequestSuccessful(data: WorkData<User>, response: Bin): User? =
         response.json?.let { Json.decodeFromJsonElement(it) }
+}
+
+/**
+ * 可缓存任务
+ *
+ * @property testData 模拟数据
+ */
+class CacheableWork(private val id: Int, private val testData: TestData) : BaseBinWork<TestData>() {
+
+    companion object {
+        /**
+         * 假设这是本地缓存数据库
+         */
+        private val caches = mutableMapOf<Int, TestData?>()
+    }
+
+    override fun url() = "/post"
+
+    override fun httpMethod() = HttpMethod.POST
+
+    override fun contentType() = MediaType.JSON
+
+    override suspend fun fillParams() = Json.encodeToString(testData)
+
+    override suspend fun onRequestSuccessful(data: WorkData<TestData>, response: Bin): TestData? =
+        response.json?.let { Json.decodeFromJsonElement(it) }
+
+    // 假设这里是根据参数读取缓存，如果缓存存在则直接返回缓存数据
+    override suspend fun onStarted(data: WorkData<TestData>): TestData? = caches[id]
+
+    override suspend fun onSuccessful(data: WorkData<TestData>) {
+        // 网络请求成功会到达这里，结果数据一定来自于服务器
+        caches[id] = data.result
+    }
+
+    override fun onFromCacheMessage(data: WorkData<TestData>): String? = "id:$id 命中缓存"
 }

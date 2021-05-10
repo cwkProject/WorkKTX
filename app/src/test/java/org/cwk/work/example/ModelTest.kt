@@ -50,4 +50,37 @@ class ModelTest {
             println("work error ${work.errorType} message ${work.message}")
         }
     }
+
+    @Test
+    fun cacheTest() = runBlocking {
+        var d = TestData("超悟空", age = 32)
+
+        var work = CacheableWork(1, d).start()
+
+        if (work.success) {
+            println("work result ${work.result}")
+        } else {
+            println("work error ${work.errorType} message ${work.message}")
+        }
+
+        d = TestData("孙悟空", age = 1000)
+
+        work = CacheableWork(1, d).start()
+
+        if (work.success) {
+            println("work result ${work.result} is cache ${work.fromCache} ${work.message}")
+        } else {
+            println("work error ${work.errorType} message ${work.message}")
+        }
+
+        d = TestData("神悟空", age = 52)
+
+        work = CacheableWork(2, d).start()
+
+        if (work.success) {
+            println("work result ${work.result} is cache ${work.fromCache} ${work.message}")
+        } else {
+            println("work error ${work.errorType} message ${work.message}")
+        }
+    }
 }

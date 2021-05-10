@@ -44,22 +44,27 @@ abstract class Work<D, T : WorkData<D>, H> : WorkCore<D, T, H>() {
         onCreateWorkData().apply {
             try {
                 onStartWork(this)
+                if (fromCache) {
+                    return@apply
+                }
                 options = onCreateOptions(retry, onSendProgress, onReceiveProgress)
                 onDoWork(this)
-                logV(_tag, "onSuccess")
+                logV(_tag, "onSuccessful")
                 onSuccessful(this)
             } catch (e: Exception) {
+                success = false
                 if (e is CancellationException) {
                     errorType = WorkErrorType.CANCEL
                     logW(_tag, "onCanceled")
                     onCanceled(this)
                 } else {
-                    errorType = errorType ?: WorkErrorType.OTHER
+                    errorType = if (e is WorkException) e.type else WorkErrorType.OTHER
+                    message = e.message
                     logW(_tag, "onFailed", e)
                     onFailed(this)
                 }
             } finally {
-                logV(_tag, "onFinish")
+                logV(_tag, "onFinished")
                 onFinished(this)
                 logV(_tag, "work finished")
             }
@@ -70,15 +75,20 @@ abstract class Work<D, T : WorkData<D>, H> : WorkCore<D, T, H>() {
      * 任务启动前置方法
      */
     private suspend fun onStartWork(data: T) {
-        if (onCheckParams()) {
-            return
+        if (!onCheckParams()) {
+            logD(_tag, "onParamsError")
+            throw WorkException(WorkErrorType.PARAMS, onParamsError())
         }
 
-        logD(_tag, "onParamsError")
-        data.errorType = WorkErrorType.PARAMS
-        data.message = onParamsError()
+        data.apply {
+            result = onStarted(this)
 
-        throw IllegalArgumentException("params error")
+            if (result != null && result != Unit) {
+                success = true
+                fromCache = true
+                message = onFromCacheMessage(this)
+            }
+        }
     }
 
     /**
@@ -104,17 +114,12 @@ abstract class Work<D, T : WorkData<D>, H> : WorkCore<D, T, H>() {
      * 此处为真正启动http请求的方法
      */
     private suspend fun onDoWork(data: T) {
-        onWillRequest(data)
-
         try {
             logI(_tag, "request", data.options)
             workRequest(data.options!!)(_tag, data.options!!)
         } catch (e: Exception) {
             logD(_tag, "onParamsError")
-            data.errorType = WorkErrorType.PARAMS
-            data.message = onParamsError()
-
-            throw e
+            throw WorkException(WorkErrorType.PARAMS, onParamsError(), e)
         }.let { call ->
             logI(_tag, "real url", call.request().url)
 
@@ -142,15 +147,14 @@ abstract class Work<D, T : WorkData<D>, H> : WorkCore<D, T, H>() {
                 return@suspendCancellableCoroutine
             }
 
-            data.errorType = if (e.message == "timeout") {
-                WorkErrorType.TIMEOUT
-            } else {
-                WorkErrorType.NETWORK
-            }
             logD(_tag, "onNetworkError")
-            data.message = onNetworkError(data)
-
-            it.resumeWithException(e)
+            it.resumeWithException(
+                WorkException(
+                    if (e.message == "timeout") WorkErrorType.TIMEOUT else WorkErrorType.NETWORK,
+                    onNetworkError(data),
+                    e,
+                )
+            )
         }
     }
 
@@ -167,20 +171,14 @@ abstract class Work<D, T : WorkData<D>, H> : WorkCore<D, T, H>() {
                 onParse(this, onResponseConvert(this, response.body!!))
             } catch (e: Exception) {
                 if (e !is CancellationException) {
-                    success = false
-                    errorType = WorkErrorType.PARSE
                     logD(_tag, "onParseFailed")
-                    message = onParseFailed(this)
+                    throw WorkException(WorkErrorType.PARSE, onParseFailed(this), e)
                 }
                 throw e
             }
         } else {
-            success = false
-            errorType = WorkErrorType.RESPONSE
             logD(_tag, "onNetworkRequestFailed")
-            message = onNetworkRequestFailed(this)
-
-            throw IOException("http unexpected code ${response.code}")
+            throw WorkException(WorkErrorType.RESPONSE, onNetworkRequestFailed(this))
         }
     }
 
@@ -194,15 +192,14 @@ abstract class Work<D, T : WorkData<D>, H> : WorkCore<D, T, H>() {
 
         if (success) {
             logV(_tag, "onRequestSuccess")
-            result = onRequestSuccess(data, body)
+            result = onRequestSuccessful(data, body)
             logV(_tag, "onRequestSuccessMessage")
-            message = onRequestSuccessMessage(data, body)
+            message = onRequestSuccessfulMessage(data, body)
         } else {
-            errorType = WorkErrorType.TASK
             logD(_tag, "onRequestFailed")
             result = onRequestFailed(data, body)
             logD(_tag, "onRequestFailedMessage")
-            message = onRequestFailedMessage(data, body)
+            throw WorkException(WorkErrorType.TASK, onRequestFailedMessage(data, body))
         }
     }
 }

@@ -23,7 +23,7 @@ class SimpleGetWork(private val testData: TestData) : BaseJsonElementWork<String
         "age" to testData.age,
     ) // 交给框架自动装配
 
-    override suspend fun onRequestSuccess(data: WorkData<String>, response: JsonElement): String? =
+    override suspend fun onRequestSuccessful(data: WorkData<String>, response: JsonElement): String? =
         response.jsonObject["args"]?.jsonObject?.get("name")?.jsonPrimitive?.content // 返回发送的"name"
 }
 
@@ -37,7 +37,7 @@ class SimpleGetAnyWork(private val params: String) : BaseJsonElementWork<String>
 
     override suspend fun fillParams() = params
 
-    override suspend fun onRequestSuccess(data: WorkData<String>, response: JsonElement): String? =
+    override suspend fun onRequestSuccessful(data: WorkData<String>, response: JsonElement): String? =
         response.jsonObject["args"]?.toString() // 返回发送的数据
 }
 
@@ -51,7 +51,7 @@ class SimpleGetQueryWork(private val params: String) : BaseJsonElementWork<Strin
 
     override suspend fun fillParams() = Unit // 地址中已经有参数，此处必须留空，否则会覆盖地址中的参数
 
-    override suspend fun onRequestSuccess(data: WorkData<String>, response: JsonElement): String? =
+    override suspend fun onRequestSuccessful(data: WorkData<String>, response: JsonElement): String? =
         response.jsonObject["args"]?.toString() // 返回发送的数据
 }
 
@@ -63,7 +63,7 @@ class SimpleErrorWork() : BaseJsonElementWork<Unit>() {
 
     override suspend fun fillParams() = Unit
 
-    override suspend fun onRequestSuccess(data: WorkData<Unit>, response: JsonElement) = Unit
+    override suspend fun onRequestSuccessful(data: WorkData<Unit>, response: JsonElement) = Unit
 }
 
 /**
@@ -81,7 +81,7 @@ class SimplePostWork(private val testData: TestData) : BaseJsonElementWork<TestD
     override suspend fun fillParams() =
         Json.encodeToString(testData) // 由于没有Android环境，框架无法自动转换Map -> json
 
-    override suspend fun onRequestSuccess(
+    override suspend fun onRequestSuccessful(
         data: WorkData<TestData>,
         response: JsonElement
     ): TestData? =
@@ -101,7 +101,7 @@ class SimpleFormWork(private val form: Map<*, *>) : BaseJsonElementWork<Map<*, *
 
     override suspend fun fillParams() = form // 交给框架自动装配
 
-    override suspend fun onRequestSuccess(
+    override suspend fun onRequestSuccessful(
         data: WorkData<Map<*, *>>,
         response: JsonElement
     ): Map<*, *>? = response.jsonObject["form"]!!.jsonObject // 返回发送的数据
@@ -123,7 +123,7 @@ class SimplePutWork(private val testData: TestData) : BaseJsonElementWork<TestDa
         "age" to testData.age,
     ) // 交给框架自动装配
 
-    override suspend fun onRequestSuccess(
+    override suspend fun onRequestSuccessful(
         data: WorkData<TestData>,
         response: JsonElement
     ): TestData? =
@@ -146,7 +146,7 @@ class SimplePatchWork(private val testData: TestData) : BaseJsonElementWork<Test
         "age" to testData.age,
     ) // 交给框架自动装配
 
-    override suspend fun onRequestSuccess(
+    override suspend fun onRequestSuccessful(
         data: WorkData<TestData>,
         response: JsonElement
     ): TestData? =
@@ -167,7 +167,7 @@ class SimpleHeadWork : Work<Unit, WorkData<Unit>, Unit>() {
 
     override fun onCreateWorkData() = WorkData<Unit>()
 
-    override suspend fun onRequestSuccess(data: WorkData<Unit>, response: Unit) = Unit
+    override suspend fun onRequestSuccessful(data: WorkData<Unit>, response: Unit) = Unit
 
     override suspend fun onResponseConvert(data: WorkData<Unit>, body: ResponseBody) = Unit
 
@@ -186,7 +186,7 @@ class SimpleDeleteWork : BaseJsonElementWork<Unit>() {
 
     override suspend fun fillParams() = Unit
 
-    override suspend fun onRequestSuccess(data: WorkData<Unit>, response: JsonElement) = Unit
+    override suspend fun onRequestSuccessful(data: WorkData<Unit>, response: JsonElement) = Unit
 }
 
 /**
@@ -209,7 +209,7 @@ class SimpleUploadWork(private val buffer: ByteArray) : BaseJsonElementWork<Unit
     override suspend fun onRequestResult(data: WorkData<Unit>, response: JsonElement) =
         response.jsonObject["files"]?.jsonObject?.isNotEmpty() == true
 
-    override suspend fun onRequestSuccess(data: WorkData<Unit>, response: JsonElement) = Unit
+    override suspend fun onRequestSuccessful(data: WorkData<Unit>, response: JsonElement) = Unit
 }
 
 /**
@@ -220,7 +220,7 @@ class SimpleDownloadWork : BaseDownloadWork<ByteArray>() {
 
     override suspend fun fillParams() = Unit
 
-    override suspend fun onRequestSuccess(
+    override suspend fun onRequestSuccessful(
         data: WorkData<ByteArray>,
         response: InputStream
     ): ByteArray? = response.readBytes()

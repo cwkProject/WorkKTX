@@ -249,6 +249,14 @@ open class WorkData<T> {
         internal set
 
     /**
+     * 本次任务是否从缓存加载
+     *
+     * 当[Work.onStarted]返回有效数据时此属性为true
+     */
+    var fromCache: Boolean = false
+        internal set
+
+    /**
      * 在一次请求生命周期中可携带的数据
      */
     var extra: Any? = null
@@ -353,3 +361,14 @@ data class ByteArrayWithMimeType(
         return result
     }
 }
+
+/**
+ * [Work]执行流程中触发的异常
+ *
+ * @property type 任务执行流程中发生的异常类型
+ */
+internal class WorkException(
+    val type: WorkErrorType,
+    message: String? = null,
+    cause: Throwable? = null
+) : Exception(message, cause)
