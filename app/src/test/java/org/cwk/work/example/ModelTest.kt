@@ -6,6 +6,8 @@ import kotlinx.coroutines.runBlocking
 import org.cwk.work.WorkConfig
 import org.cwk.work.start
 import org.cwk.work.workLog
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -30,12 +32,14 @@ class ModelTest {
 
         val u = User("1234455", "超悟空")
 
-        val login = UserLoginWork(u).start()
+        val work = UserLoginWork(u).start()
 
-        if (login.success) {
-            println("work result ${login.result}")
+        assertTrue(work.success)
+
+        if (work.success) {
+            println("work result ${work.result}")
         } else {
-            println("work error ${login.errorType} message ${login.message}")
+            println("work error ${work.errorType} message ${work.message}")
         }
     }
 
@@ -43,6 +47,8 @@ class ModelTest {
     fun registerTest() = runBlocking {
 
         val work = UserRegisterWork("sadasd", "超悟空").start()
+
+        assertTrue(work.success)
 
         if (work.success) {
             println("work result ${work.result}")
@@ -57,6 +63,9 @@ class ModelTest {
 
         var work = CacheableWork(1, d).start()
 
+        assertTrue(work.success)
+        assertFalse(work.fromCache)
+
         if (work.success) {
             println("work result ${work.result}")
         } else {
@@ -67,6 +76,9 @@ class ModelTest {
 
         work = CacheableWork(1, d).start()
 
+        assertTrue(work.success)
+        assertTrue(work.fromCache)
+
         if (work.success) {
             println("work result ${work.result} is cache ${work.fromCache} ${work.message}")
         } else {
@@ -76,6 +88,9 @@ class ModelTest {
         d = TestData("神悟空", age = 52)
 
         work = CacheableWork(2, d).start()
+
+        assertTrue(work.success)
+        assertFalse(work.fromCache)
 
         if (work.success) {
             println("work result ${work.result} is cache ${work.fromCache} ${work.message}")

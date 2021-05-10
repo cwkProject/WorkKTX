@@ -1,10 +1,8 @@
 package org.cwk.work.example
 
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.cwk.work.*
-import org.junit.Assert.assertEquals
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import java.net.URLEncoder
@@ -31,6 +29,8 @@ class BasicTest {
 
         val work = SimpleGetWork(d).start()
 
+        assertTrue(work.success)
+
         if (work.success) {
             println("work result ${work.result}")
         } else {
@@ -43,6 +43,8 @@ class BasicTest {
         val d = "name=超悟空&age=32"
 
         val work = SimpleGetAnyWork(d).start()
+
+        assertTrue(work.success)
 
         if (work.success) {
             println("work result ${work.result}")
@@ -57,6 +59,8 @@ class BasicTest {
 
         val work = SimpleGetQueryWork(d).start()
 
+        assertTrue(work.success)
+
         if (work.success) {
             println("work result ${work.result}")
         } else {
@@ -70,6 +74,8 @@ class BasicTest {
         // 尝试最多5次重试
         val work = SimpleErrorWork().start(5)
 
+        assertFalse(work.success)
+
         if (work.success) {
             println("work result ${work.result}")
         } else {
@@ -82,6 +88,8 @@ class BasicTest {
         val d = TestData("超悟空", age = 32)
 
         val work = SimplePostWork(d).start()
+
+        assertTrue(work.success)
 
         if (work.success) {
             println("work result ${work.result}")
@@ -101,6 +109,8 @@ class BasicTest {
 
         val work = SimpleFormWork(d).start()
 
+        assertTrue(work.success)
+
         if (work.success) {
             println("work result ${work.result}")
         } else {
@@ -114,6 +124,8 @@ class BasicTest {
 
         val work = SimplePutWork(d).start()
 
+        assertTrue(work.success)
+
         if (work.success) {
             println("work result ${work.result}")
         } else {
@@ -126,6 +138,8 @@ class BasicTest {
         val d = TestData("超悟空", age = 32)
 
         val work = SimplePatchWork(d).start()
+
+        assertTrue(work.success)
 
         if (work.success) {
             println("work result ${work.result}")
@@ -152,6 +166,8 @@ class BasicTest {
     fun deleteTest() = runBlocking {
         val work = SimpleDeleteWork().start()
 
+        assertTrue(work.success)
+
         if (work.success) {
             println("work result ${work.result}")
         } else {
@@ -165,6 +181,8 @@ class BasicTest {
 
         val work = SimpleUploadWork(buffer).start()
 
+        assertTrue(work.success)
+
         if (work.success) {
             println("work result ${work.result}")
         } else {
@@ -175,6 +193,8 @@ class BasicTest {
     @Test
     fun downloadTest() = runBlocking {
         val work = SimpleDownloadWork().start()
+
+        assertTrue(work.success)
 
         if (work.success) {
             println("work result size:${work.result?.size}")
