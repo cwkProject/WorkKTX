@@ -190,7 +190,7 @@ fun <D, T : WorkData<D>, H> Work<D, T, H>.launchWithChannel(
 ): Job = launch(coroutineScope, context, start, retry, sendProgressChannel?.let {
     fun(current: Long, total: Long, _: Boolean) {
         try {
-            it.offer(current * 100f / total)
+            it.trySend(current * 100f / total)
         } catch (e: Exception) {
         }
     }
