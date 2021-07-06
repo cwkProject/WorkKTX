@@ -170,7 +170,7 @@ abstract class Work<D, T : WorkData<D>, H> : WorkCore<D, T, H>() {
                 logV(_tag, "onResponseConvert")
                 onParse(this, onResponseConvert(this, response.body!!))
             } catch (e: Exception) {
-                if (e !is CancellationException) {
+                if (e !is CancellationException && e !is WorkException) {
                     logD(_tag, "onParseFailed")
                     throw WorkException(WorkErrorType.PARSE, onParseFailed(this), e)
                 }

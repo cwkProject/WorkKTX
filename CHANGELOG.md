@@ -1,3 +1,8 @@
+## [1.2.0] - 2021/7/6
+
+* 修复空请求体请求失败bug
+* 修复`onRequestResult`返回false后失败流被`onParseFailed`覆盖的bug
+
 ## [1.1.0] - 2021/5/10
 
 * 优化流程实现

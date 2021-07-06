@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-  implementation 'io.github.cwkproject:work:1.1.0'
+  implementation 'io.github.cwkproject:work:1.2.0'
 }
 
 ```

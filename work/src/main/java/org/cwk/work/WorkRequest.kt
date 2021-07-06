@@ -8,6 +8,8 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.internal.EMPTY_BYTE_ARRAY
+import okhttp3.internal.EMPTY_REQUEST
 import okio.ByteString
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -125,6 +127,6 @@ fun workRequestBodyBuilder(config: WorkConfig, options: Options): RequestBody? {
         is ByteString -> params.toRequestBody(contentType)
         is ByteArray -> params.toRequestBody(contentType)
         is File -> params.asRequestBody(contentType)
-        else -> null
+        else -> EMPTY_BYTE_ARRAY.toRequestBody(contentType)
     }
 }

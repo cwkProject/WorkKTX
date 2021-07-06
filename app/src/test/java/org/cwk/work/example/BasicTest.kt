@@ -202,5 +202,31 @@ class BasicTest {
             println("work error ${work.errorType} message ${work.message}")
         }
     }
+
+    @Test
+    fun emptyPostTest() = runBlocking {
+        val work = SimpleEmptyPostWork().start()
+
+        assertTrue(work.success)
+
+        if (work.success) {
+            println("work result :${work.result}")
+        } else {
+            println("work error ${work.errorType} message ${work.message}")
+        }
+    }
+
+    @Test
+    fun emptyFailedPostTest() = runBlocking {
+        val work = SimpleFailedPostWork().start()
+
+        assertFalse(work.success)
+
+        if (work.success) {
+            println("work result :${work.result}")
+        } else {
+            println("work error ${work.errorType} message ${work.message}")
+        }
+    }
 }
 

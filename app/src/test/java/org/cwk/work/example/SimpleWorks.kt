@@ -2,7 +2,6 @@
 
 package org.cwk.work.example
 
-import kotlinx.coroutines.delay
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 import okhttp3.MediaType
@@ -23,7 +22,10 @@ class SimpleGetWork(private val testData: TestData) : BaseJsonElementWork<String
         "age" to testData.age,
     ) // 交给框架自动装配
 
-    override suspend fun onRequestSuccessful(data: WorkData<String>, response: JsonElement): String? =
+    override suspend fun onRequestSuccessful(
+        data: WorkData<String>,
+        response: JsonElement
+    ): String? =
         response.jsonObject["args"]?.jsonObject?.get("name")?.jsonPrimitive?.content // 返回发送的"name"
 }
 
@@ -37,7 +39,10 @@ class SimpleGetAnyWork(private val params: String) : BaseJsonElementWork<String>
 
     override suspend fun fillParams() = params
 
-    override suspend fun onRequestSuccessful(data: WorkData<String>, response: JsonElement): String? =
+    override suspend fun onRequestSuccessful(
+        data: WorkData<String>,
+        response: JsonElement
+    ): String? =
         response.jsonObject["args"]?.toString() // 返回发送的数据
 }
 
@@ -51,7 +56,10 @@ class SimpleGetQueryWork(private val params: String) : BaseJsonElementWork<Strin
 
     override suspend fun fillParams() = Unit // 地址中已经有参数，此处必须留空，否则会覆盖地址中的参数
 
-    override suspend fun onRequestSuccessful(data: WorkData<String>, response: JsonElement): String? =
+    override suspend fun onRequestSuccessful(
+        data: WorkData<String>,
+        response: JsonElement
+    ): String? =
         response.jsonObject["args"]?.toString() // 返回发送的数据
 }
 
@@ -224,4 +232,42 @@ class SimpleDownloadWork : BaseDownloadWork<ByteArray>() {
         data: WorkData<ByteArray>,
         response: InputStream
     ): ByteArray? = response.readBytes()
+}
+
+/**
+ * 简单空请求体Post任务
+ */
+class SimpleEmptyPostWork() : BaseJsonElementWork<Unit>() {
+    override fun url() = "/post"
+
+    override fun httpMethod() = HttpMethod.POST
+
+    override fun contentType() = MediaType.JSON
+
+    override suspend fun fillParams() = Unit
+
+    override suspend fun onRequestSuccessful(
+        data: WorkData<Unit>,
+        response: JsonElement
+    ): Unit = Unit
+}
+
+/**
+ * 简单业务失败Post任务
+ */
+class SimpleFailedPostWork() : BaseJsonElementWork<Unit>() {
+    override fun url() = "/post"
+
+    override suspend fun onRequestResult(data: WorkData<Unit>, response: JsonElement) = false
+
+    override fun httpMethod() = HttpMethod.POST
+
+    override fun contentType() = MediaType.JSON
+
+    override suspend fun fillParams() = Unit
+
+    override suspend fun onRequestSuccessful(
+        data: WorkData<Unit>,
+        response: JsonElement
+    ): Unit = Unit
 }
