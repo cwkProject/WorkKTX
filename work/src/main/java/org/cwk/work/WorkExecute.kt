@@ -14,9 +14,9 @@ import kotlin.coroutines.EmptyCoroutineContext
  * 推荐使用
  *
  * @param retry 请求失败重试次数，0表示不重试，实际请求1次，1表示重试1次，实际最多请求两次，以此类推
- * @param context 协程上下文，影响[Work]各生命周期方法的执行线程，其中部分网络请求关联方法总是在[Dispatchers.IO]中执行
+ * @param context 协程上下文，影响[Work]各生命周期方法的执行线程
  * @param sendProgressChannel 发送/上传进度的通道，参数为进度百分比，任务结束后会自动关闭通道，在[Work.httpMethod]为[HttpMethod.GET]和[HttpMethod.HEAD]时无效，
- * @param receiveProgressChannel 接收/下载进度监听器，参数为进度百分比，任务结束后会自动关闭通道
+ * @param receiveProgressChannel 接收/下载进度的通道，参数为进度百分比，任务结束后会自动关闭通道
  *
  * @return 包含执行结果的包装类[T]
  */
@@ -51,7 +51,7 @@ suspend fun <D, T : WorkData<D>, H> Work<D, T, H>.start(
  * 任务的执行完全依赖协程，同样支持协程取消规范
  *
  * @param retry 请求失败重试次数，0表示不重试，实际请求1次，1表示重试1次，实际最多请求两次，以此类推
- * @param context 协程上下文，影响[Work]各生命周期方法的执行线程，其中部分网络请求关联方法总是在[Dispatchers.IO]中执行
+ * @param context 协程上下文，影响[Work]各生命周期方法的执行线程
  * @param onSendProgress 发送/上传进度监听器，在[Work.httpMethod]为[HttpMethod.GET]和[HttpMethod.HEAD]时无效
  *
  * @return 包含执行结果的包装类[T]
@@ -68,7 +68,7 @@ suspend fun <D, T : WorkData<D>, H> Work<D, T, H>.upload(
  *
  * @param channel 发送/上传进度的通道，参数为进度百分比，任务结束后会自动关闭通道，在[Work.httpMethod]为[HttpMethod.GET]和[HttpMethod.HEAD]时无效，
  * @param retry 请求失败重试次数，0表示不重试，实际请求1次，1表示重试1次，实际最多请求两次，以此类推
- * @param context 协程上下文，影响[Work]各生命周期方法的执行线程，其中部分网络请求关联方法总是在[Dispatchers.IO]中执行
+ * @param context 协程上下文，影响[Work]各生命周期方法的执行线程
  *
  * @return 包含执行结果的包装类[T]
  */
@@ -92,7 +92,7 @@ suspend fun <D, T : WorkData<D>, H> Work<D, T, H>.upload(
  * 任务的执行完全依赖协程，同样支持协程取消规范
  *
  * @param retry 请求失败重试次数，0表示不重试，实际请求1次，1表示重试1次，实际最多请求两次，以此类推
- * @param context 协程上下文，影响[Work]各生命周期方法的执行线程，其中部分网络请求关联方法总是在[Dispatchers.IO]中执行
+ * @param context 协程上下文，影响[Work]各生命周期方法的执行线程
  * @param onReceiveProgress 接收/下载进度监听器
  *
  * @return 包含执行结果的包装类[T]
@@ -109,7 +109,7 @@ suspend fun <D, T : WorkData<D>, H> Work<D, T, H>.download(
  *
  * @param channel 接收/下载进度监听器，参数为进度百分比，任务结束后会自动关闭通道
  * @param retry 请求失败重试次数，0表示不重试，实际请求1次，1表示重试1次，实际最多请求两次，以此类推
- * @param context 协程上下文，影响[Work]各生命周期方法的执行线程，其中部分网络请求关联方法总是在[Dispatchers.IO]中执行
+ * @param context 协程上下文，影响[Work]各生命周期方法的执行线程
  *
  * @return 包含执行结果的包装类[T]
  */
@@ -134,7 +134,7 @@ suspend fun <D, T : WorkData<D>, H> Work<D, T, H>.download(
  * 此模式为启动协程+执行任务的组合快捷方式
  *
  * @param coroutineScope 指定协程作用域，如果为null将使用[MainScope]作用域并在任务结束时取消
- * @param context 协程上下文
+ * @param context 协程上下文，影响[Work]各生命周期方法的执行线程
  * @param retry 请求失败重试次数，0表示不重试，实际请求1次，1表示重试1次，实际最多请求两次，以此类推
  * @param start 协程启动选项，参考[CoroutineScope.launch]
  * @param onSendProgress 发送/上传进度监听器，在[Work.httpMethod]为[HttpMethod.GET]和[HttpMethod.HEAD]时无效
@@ -170,7 +170,7 @@ fun <D, T : WorkData<D>, H> Work<D, T, H>.launch(
  * 此模式为启动协程+执行任务的组合快捷方式
  *
  * @param coroutineScope 指定协程作用域，如果为null将使用[MainScope]作用域并在任务结束时取消
- * @param context 协程上下文
+ * @param context 协程上下文，影响[Work]各生命周期方法的执行线程
  * @param retry 请求失败重试次数，0表示不重试，实际请求1次，1表示重试1次，实际最多请求两次，以此类推
  * @param start 协程启动选项，参考[CoroutineScope.launch]
  * @param sendProgressChannel 发送/上传进度的通道，参数为进度百分比，任务结束后会自动关闭通道，在[Work.httpMethod]为[HttpMethod.GET]和[HttpMethod.HEAD]时无效，
@@ -220,7 +220,7 @@ fun <D, T : WorkData<D>, H> Work<D, T, H>.launchWithChannel(
  * 此模式为启动协程+执行任务的组合快捷方式
  *
  * @param coroutineScope 指定协程作用域，如果为null将使用[MainScope]作用域并在任务结束时取消
- * @param context 协程上下文
+ * @param context 协程上下文，影响[Work]各生命周期方法的执行线程
  * @param retry 请求失败重试次数，0表示不重试，实际请求1次，1表示重试1次，实际最多请求两次，以此类推
  * @param start 协程启动选项，参考[CoroutineScope.async]
  * @param onSendProgress 发送/上传进度监听器，在[Work.httpMethod]为[HttpMethod.GET]和[HttpMethod.HEAD]时无效
@@ -256,7 +256,7 @@ fun <D, T : WorkData<D>, H, R> Work<D, T, H>.async(
  * 此模式为启动协程+执行任务的组合快捷方式
  *
  * @param coroutineScope 指定协程作用域，如果为null将使用[MainScope]作用域并在任务结束时取消
- * @param context 协程上下文
+ * @param context 协程上下文，影响[Work]各生命周期方法的执行线程
  * @param retry 请求失败重试次数，0表示不重试，实际请求1次，1表示重试1次，实际最多请求两次，以此类推
  * @param start 协程启动选项，参考[CoroutineScope.async]
  * @param sendProgressChannel 发送/上传进度的通道，参数为进度百分比，任务结束后会自动关闭通道，在[Work.httpMethod]为[HttpMethod.GET]和[HttpMethod.HEAD]时无效，

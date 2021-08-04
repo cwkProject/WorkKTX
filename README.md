@@ -137,8 +137,7 @@ fun main() = runBlocking{
     val work = LoginWork("cwk","123456")
 
     // 最简单的启动方式，在协程作用域内启动，以同步的方式书写异步请求和响应，充分利用协程优势
-    // 默认的Work会在[Dispatchers.IO]中执行，如果要控制Work工作上下文，请传入[CoroutineContext]，
-    // 尽管可以控制Work的基础生命周期的工作[CoroutineContext]但是实际执行网络请求的部分生命周期依然会在[Dispatchers.IO]中执行。
+    // 默认的Work会在[Dispatchers.IO]中执行，如果要控制Work工作上下文，请传入[CoroutineContext]
     var data = work.start() // data为AppWorkData<User>类型
 
     if (data.success){

@@ -11,9 +11,7 @@ import kotlin.coroutines.CoroutineContext
 /**
  * [Work]核心生命周期
  *
- * 所有的生命中周期方法默认在[Dispatchers.IO]中执行，
- * 可通过[execute]参数改变协程上下文，
- * 部分网络请求关联的生命周期总是在[Dispatchers.IO]中执行
+ * 所有的生命周期方法默认在[Dispatchers.IO]中执行，可通过[execute]参数改变协程上下文
  *
  * @param D 关联的[Work]实际返回的[WorkData.result]结果数据类型
  * @param T [Work]返回的结果包装类型[WorkData]
@@ -25,7 +23,7 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
      * 执行任务
      * 任务的执行完全依赖协程，同样支持协程取消规范
      *
-     * @param context 协程上下文，影响[Work]各生命周期方法的执行线程，其中部分网络请求关联方法总是在[Dispatchers.IO]中执行
+     * @param context 协程上下文，影响[Work]各生命周期方法的执行线程
      * @param retry 请求失败重试次数，0表示不重试，实际请求1次，1表示重试1次，实际最多请求两次，以此类推
      * @param onSendProgress 发送/上传进度监听器，在[httpMethod]为[HttpMethod.GET]和[HttpMethod.HEAD]时无效
      * @param onReceiveProgress 接收/下载进度监听器
@@ -239,8 +237,6 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
     /**
      * 转换OkHttp请求结果数据[ResponseBody]到用户定义的[H]类型数据
      *
-     * @suppress 此生命周期总是在[Dispatchers.IO]中执行，即不受[execute]的[CoroutineContext]参数影响
-     *
      * @param data 本次请求中流转的数据
      * @param body 请求成功响应的数据体，无需执行[ResponseBody.close]，框架会负责关闭
      *
@@ -255,8 +251,6 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
      *
      * http响应成功时判断本次业务请求真正的成功或失败结果
      *
-     * @suppress 此生命周期总是在[Dispatchers.IO]中执行，即不受[execute]的[CoroutineContext]参数影响
-     *
      * @param data 本次请求中流转的数据
      * @param response 经由[onResponseConvert]转换后的数据结果
      *
@@ -268,8 +262,6 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
      * 提取服务执行成功时返回的真正有用结果数据
      *
      * 在服务请求成功后调用，即[onRequestResult]返回值为true时被调用
-     *
-     * @suppress 此生命周期总是在[Dispatchers.IO]中执行，即不受[execute]的[CoroutineContext]参数影响
      *
      * @param data 本次请求中流转的数据
      * @param response 经由[onResponseConvert]转换后的数据结果
@@ -283,8 +275,6 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
      *
      * 在服务请求成功后调用，即[onRequestResult]返回值为true时被调用
      *
-     * @suppress 此生命周期总是在[Dispatchers.IO]中执行，即不受[execute]的[CoroutineContext]参数影响
-     *
      * @param data 本次请求中流转的数据
      * @param response 经由[onResponseConvert]转换后的数据结果
      *
@@ -296,8 +286,6 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
      * 提取或设置服务执行失败时的返回结果数据
      *
      * 在服务请求失败后调用，即[onRequestResult]返回值为false时被调用
-     *
-     * @suppress 此生命周期总是在[Dispatchers.IO]中执行，即不受[execute]的[CoroutineContext]参数影响
      *
      * @param data 本次请求中流转的数据
      * @param response 经由[onResponseConvert]转换后的数据结果
@@ -311,8 +299,6 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
      *
      * 在服务请求失败后调用，即[onRequestResult]返回值为false时被调用
      *
-     * @suppress 此生命周期总是在[Dispatchers.IO]中执行，即不受[execute]的[CoroutineContext]参数影响
-     *
      * @param data 本次请求中流转的数据
      * @param response 经由[onResponseConvert]转换后的数据结果
      *
@@ -325,8 +311,6 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
      *
      * 即在[Work.onParse]返回false时调用
      *
-     * @suppress 此生命周期总是在[Dispatchers.IO]中执行，即不受[execute]的[CoroutineContext]参数影响
-     *
      * @param data 本次请求中流转的数据
      *
      * @return 响应数据解析失败时的消息，将会设置给[WorkData.message]
@@ -338,8 +322,6 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
      *
      * 即响应码不是2xx，如4xx，5xx等
      *
-     * @suppress 此生命周期总是在[Dispatchers.IO]中执行，即不受[execute]的[CoroutineContext]参数影响
-     *
      * @param data 本次请求中流转的数据
      *
      * @return 服务器响应错误时的消息，将会设置给[WorkData.message]
@@ -348,8 +330,6 @@ abstract class WorkCore<D, T : WorkData<D>, H> {
 
     /**
      *  网络连接建立失败时调用，即网络不可用
-     *
-     *  @suppress 此生命周期总是在[Dispatchers.IO]中执行，即不受[execute]的[CoroutineContext]参数影响
      *
      *  @param data 本次请求中流转的数据
      *

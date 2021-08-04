@@ -4,6 +4,7 @@ package org.cwk.work
 
 import kotlinx.coroutines.*
 import okhttp3.Call
+import okhttp3.Callback
 import okhttp3.Response
 import java.io.IOException
 import kotlin.coroutines.CoroutineContext
@@ -16,9 +17,7 @@ import kotlin.coroutines.resumeWithException
  * 可以启动网络请求
  * 任务流程依赖协程实现，同样遵循通过协程取消任务
  *
- * 所有方法默认在[Dispatchers.IO]中执行，
- * 可通过[execute]参数改变协程上下文，
- * 部分网络请求关联的生命周期总是在[Dispatchers.IO]中执行
+ * 所有方法默认在[Dispatchers.IO]中执行，可通过[execute]参数改变协程上下文
  *
  * 此类为任务基础模板，需要用户在项目中根据实际的业务http通用协议实现自己的基类并进一步继承实现各个接口[Work]
  *
@@ -123,10 +122,8 @@ abstract class Work<D, T : WorkData<D>, H> : WorkCore<D, T, H>() {
         }.let { call ->
             logI(_tag, "real url", call.request().url)
 
-            withContext(Dispatchers.IO + CoroutineName(_tag)) {
-                onCall(data, call).use {
-                    onHandleResponse(data, it)
-                }
+            onCall(data, call).use {
+                onHandleResponse(data, it)
             }
         }
     }
@@ -140,22 +137,26 @@ abstract class Work<D, T : WorkData<D>, H> : WorkCore<D, T, H>() {
             call.cancel()
         }
 
-        try {
-            it.resume(call.execute())
-        } catch (e: IOException) {
-            if (it.isCancelled) {
-                return@suspendCancellableCoroutine
+        call.enqueue(object : Callback {
+            override fun onResponse(call: Call, response: Response) {
+                it.resume(response)
             }
 
-            logD(_tag, "onNetworkError")
-            it.resumeWithException(
-                WorkException(
-                    if (e.message == "timeout") WorkErrorType.TIMEOUT else WorkErrorType.NETWORK,
-                    onNetworkError(data),
-                    e,
+            override fun onFailure(call: Call, e: IOException) {
+                if (it.isCancelled) {
+                    return
+                }
+
+                logD(_tag, "onNetworkError")
+                it.resumeWithException(
+                    WorkException(
+                        if (e.message == "timeout") WorkErrorType.TIMEOUT else WorkErrorType.NETWORK,
+                        onNetworkError(data),
+                        e,
+                    )
                 )
-            )
-        }
+            }
+        })
     }
 
     /**
