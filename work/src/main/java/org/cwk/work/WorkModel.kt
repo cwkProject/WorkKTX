@@ -360,6 +360,10 @@ data class ByteArrayWithMimeType(
         result = 31 * result + name.hashCode()
         return result
     }
+
+    override fun toString(): String {
+        return "ByteArrayWithMimeType(name='$name', mimeType='$mimeType', byteArray.size=${byteArray.size})"
+    }
 }
 
 /**
@@ -371,4 +375,8 @@ internal class WorkException(
     val type: WorkErrorType,
     message: String? = null,
     cause: Throwable? = null
-) : Exception(message, cause)
+) : Exception(message, cause) {
+    override fun toString(): String {
+        return "${javaClass.canonicalName}: type=$type ${message ?: ""}${cause?.let { "\n$it" } ?: ""}"
+    }
+}

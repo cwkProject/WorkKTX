@@ -75,6 +75,7 @@ class BasicTest {
         val work = SimpleErrorWork().start(5)
 
         assertFalse(work.success)
+        assertEquals(WorkErrorType.RESPONSE, work.errorType)
 
         if (work.success) {
             println("work result ${work.result}")
@@ -152,6 +153,9 @@ class BasicTest {
     fun headTest() = runBlocking {
         val work = SimpleHeadWork().start()
 
+        assertFalse(work.success)
+        assertEquals(WorkErrorType.RESPONSE, work.errorType)
+
         if (work.success) {
             println("work result ${work.result}")
         } else {
@@ -221,6 +225,21 @@ class BasicTest {
         val work = SimpleFailedPostWork().start()
 
         assertFalse(work.success)
+        assertEquals(WorkErrorType.TASK, work.errorType)
+
+        if (work.success) {
+            println("work result :${work.result}")
+        } else {
+            println("work error ${work.errorType} message ${work.message}")
+        }
+    }
+
+    @Test
+    fun parsedFailedTest() = runBlocking {
+        val work = SimpleParsedFailedWork().start()
+
+        assertFalse(work.success)
+        assertEquals(WorkErrorType.PARSE, work.errorType)
 
         if (work.success) {
             println("work result :${work.result}")

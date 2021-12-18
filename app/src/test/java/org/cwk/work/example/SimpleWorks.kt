@@ -271,3 +271,23 @@ class SimpleFailedPostWork() : BaseJsonElementWork<Unit>() {
         response: JsonElement
     ): Unit = Unit
 }
+
+/**
+ * 简单提取结果失败任务
+ */
+class SimpleParsedFailedWork() : BaseJsonElementWork<String>() {
+    override fun url() = "/post"
+
+    override suspend fun onRequestResult(data: WorkData<String>, response: JsonElement) = true
+
+    override fun httpMethod() = HttpMethod.POST
+
+    override fun contentType() = MediaType.JSON
+
+    override suspend fun fillParams() = Unit
+
+    override suspend fun onRequestSuccessful(
+        data: WorkData<String>,
+        response: JsonElement
+    ): String = response.jsonArray[0].toString()
+}
